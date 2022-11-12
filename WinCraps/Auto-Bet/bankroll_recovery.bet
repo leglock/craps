@@ -3,7 +3,7 @@
 '  - Always have a don't pass bet
 '  - Place come bets until you have 2 active
 '  - When you reach 2 active come bets, play the don't come
-'  - If you lose 4 units on a shooter, stop betting until their roll is over
+'  - Never lose more than 4 units on any given shooter
 '
 ' This system was demonstrated by Crappy the craps man here:
 ' https://www.youtube.com/watch?v=_YDtF3rKymA
@@ -11,59 +11,39 @@
 If
    initializing script
 Then
+   cs1.UnitSize = 25 : ' size of each unit
+   cs2.UnitTotal = 4 :  ' never extend more than this many units on any given shooter
+   
+   cs3.ShooterStartingStack = Bankroll :
+   cs4.LossThreshold = cs1.UnitSize * cs2.UnitTotal :
    AutoHandle Winning bets = "Take Bet and Winnings" :
    AutoHandle Losing bets = "No Bet/Take Remainder (if any)" :
-
-   cs1.betAmount = 25 : ' size of each unit
-   cs2.activeShooter = True : ' track if we are actively betting on current shooter
-   cs3.rollStartingStack = Bankroll : ' track how much we had when shooter began
-   cs4.lossThreshold = ((cs1.betAmount * 4) * -1) : ' the amount we are willing to lose on a shooter
-
-   Show message
-   "Executing with $" & cs1.betAmount & " units." :
 EndIf
-
 
 If
    Seven out
 Then
-   cs2.activeShooter = True :
-   cs3.rollStartingStack = Bankroll :
-
+   cs3.ShooterStartingStack = Bankroll :
 EndIf
 
 If
-   cs2.activeShooter
+   (cs3.ShooterStartingStack - Available Bankroll) >= cs4.lossThreshold
 Then
+   GoTo "End"
+EndIf
 
+If
+   Next roll is a comeout roll
+Then
+   Bet cs1.UnitSize on DontPass
+Else
    If
-      (Bankroll - cs3.rollStartingStack) <= ((cs1.betAmount * 4) * -1)
+      Sum(Come bets) < (cs1.UnitSize * 2)
    Then
-      cs2.activeShooter = False :
-      Show message
-      "$" & (Bankroll - cs3.rollStartingStack) * -1 & " lost on this shooter; pausing until next shooter is up." : ""
-
-      GoTo "End" :
-   EndIf
-
-
-   If
-      Next roll is a comeout roll
-   Then
-      Bet cs1.betAmount on DontPass
+      Bet cs1.UnitSize on Come
    Else
-      If
-         Sum(Come bets) < (cs1.betAmount * 2)
-      Then
-         Bet cs1.betAmount on Come
-      Else
-         Bet cs1.betAmount on DontCome
-
-      EndIf
+      Bet cs1.UnitSize on DontCome
    EndIf
-
-
 EndIf
 
 : "End" :
-
