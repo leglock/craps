@@ -21,7 +21,6 @@ Then
 
    Show message
    "Executing with $" & cs1.betAmount & " units." :
-   'GoTo "End"
 EndIf
 
 
@@ -56,12 +55,8 @@ Then
       If
          Sum(Come bets) < (cs1.betAmount * 2)
       Then
-         'Show message
-         'Sum(Come bets) :
          Bet cs1.betAmount on Come
       Else
-         'Show message
-         'Sum(Come bets) :
          Bet cs1.betAmount on DontCome
 
       EndIf
