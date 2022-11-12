@@ -1,0 +1,74 @@
+' This system is a combination of:
+'
+'  - Always have a don't pass bet
+'  - Place come bets until you have 2 active
+'  - When you reach 2 active come bets, play the don't come
+'  - If you lose 4 units on a shooter, stop betting until their roll is over
+'
+' This system was demonstrated by Crappy the craps man here:
+' https://www.youtube.com/watch?v=_YDtF3rKymA
+
+If
+   initializing script
+Then
+   AutoHandle Winning bets = "Take Bet and Winnings" :
+   AutoHandle Losing bets = "No Bet/Take Remainder (if any)" :
+
+   cs1.betAmount = 25 : ' size of each unit
+   cs2.activeShooter = True : ' track if we are actively betting on current shooter
+   cs3.rollStartingStack = Bankroll : ' track how much we had when shooter began
+   cs4.lossThreshold = ((cs1.betAmount * 4) * -1) : ' the amount we are willing to lose on a shooter
+
+   Show message
+   "Executing with $" & cs1.betAmount & " units." :
+   'GoTo "End"
+EndIf
+
+
+If
+   Seven out
+Then
+   cs2.activeShooter = True :
+   cs3.rollStartingStack = Bankroll :
+
+EndIf
+
+If
+   cs2.activeShooter
+Then
+
+   If
+      (Bankroll - cs3.rollStartingStack) <= ((cs1.betAmount * 4) * -1)
+   Then
+      cs2.activeShooter = False :
+      Show message
+      "$" & (Bankroll - cs3.rollStartingStack) * -1 & " lost on this shooter; pausing until next shooter is up." : ""
+
+      GoTo "End" :
+   EndIf
+
+
+   If
+      Next roll is a comeout roll
+   Then
+      Bet cs1.betAmount on DontPass
+   Else
+      If
+         Sum(Come bets) < (cs1.betAmount * 2)
+      Then
+         'Show message
+         'Sum(Come bets) :
+         Bet cs1.betAmount on Come
+      Else
+         'Show message
+         'Sum(Come bets) :
+         Bet cs1.betAmount on DontCome
+
+      EndIf
+   EndIf
+
+
+EndIf
+
+: "End" :
+
